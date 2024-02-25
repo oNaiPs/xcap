@@ -26,6 +26,7 @@ pub(crate) struct ImplWindow {
     pub id: u32,
     pub title: String,
     pub app_name: String,
+    pub app_pid: Pid,
     pub current_monitor: ImplMonitor,
     pub x: i32,
     pub y: i32,
@@ -34,6 +35,8 @@ pub(crate) struct ImplWindow {
     pub is_minimized: bool,
     pub is_maximized: bool,
 }
+
+pub type Pid = i32;
 
 #[link(name = "CoreGraphics", kind = "framework")]
 extern "C" {
@@ -92,6 +95,16 @@ impl ImplWindow {
                 CFString::from_void(window_owner_name_ref).to_string()
             };
 
+            let window_owner_pid_ref =
+                get_cf_dictionary_get_value(window_cf_dictionary_ref, "kCGWindowOwnerPID");
+
+            let mut app_pid: Pid = 0;
+            CFNumberGetValue(
+                window_owner_pid_ref as CFNumberRef,
+                kCFNumberIntType,
+                &mut app_pid as *mut _ as *mut c_void,
+            );
+
             let cg_rect = get_window_cg_rect(window_cf_dictionary_ref);
 
             let is_minimized = {
@@ -120,6 +133,7 @@ impl ImplWindow {
                 id,
                 title,
                 app_name,
+                app_pid,
                 current_monitor,
                 x: cg_rect.origin.x as i32,
                 y: cg_rect.origin.y as i32,

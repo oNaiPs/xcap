@@ -1,6 +1,10 @@
 use image::RgbaImage;
 
-use crate::{error::XCapResult, platform::impl_window::ImplWindow, Monitor};
+use crate::{
+    error::XCapResult,
+    platform::impl_window::{ImplWindow, Pid},
+    Monitor,
+};
 
 #[derive(Debug, Clone)]
 pub struct Window {
@@ -32,6 +36,10 @@ impl Window {
     /// The window app name
     pub fn app_name(&self) -> &str {
         &self.impl_window.app_name
+    }
+    /// The window app pid
+    pub fn app_pid(&self) -> &Pid {
+        &self.impl_window.app_pid
     }
     /// The window title
     pub fn title(&self) -> &str {

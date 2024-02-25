@@ -30,6 +30,8 @@ use super::{
     utils::{get_window_rect, wide_string_to_string},
 };
 
+pub type Pid = usize;
+
 #[derive(Debug, Clone)]
 pub(crate) struct ImplWindow {
     pub hwnd: HWND,
@@ -38,6 +40,7 @@ pub(crate) struct ImplWindow {
     pub id: u32,
     pub title: String,
     pub app_name: String,
+    pub app_pid: Pid,
     pub current_monitor: ImplMonitor,
     pub x: i32,
     pub y: i32,
@@ -265,6 +268,14 @@ fn get_app_name(hwnd: HWND) -> XCapResult<String> {
     }
 }
 
+fn get_app_pid(hwnd: HWND) -> XCapResult<Pid> {
+    unsafe {
+        let mut app_pid: u32 = 0;
+        GetWindowThreadProcessId(hwnd, Some(&mut app_pid));
+        Ok(app_pid as Pid)
+    }
+}
+
 impl ImplWindow {
     fn new(hwnd: HWND) -> XCapResult<ImplWindow> {
         unsafe {
@@ -275,6 +286,7 @@ impl ImplWindow {
 
             let title = get_window_title(hwnd)?;
             let app_name = get_app_name(hwnd)?;
+            let app_pid = get_app_pid(hwnd)?;
 
             let hmonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
             let rc_window = window_info.rcWindow;
@@ -287,6 +299,7 @@ impl ImplWindow {
                 id: hwnd.0 as u32,
                 title,
                 app_name,
+                app_pid,
                 current_monitor: ImplMonitor::new(hmonitor)?,
                 x: rc_window.left,
                 y: rc_window.top,
